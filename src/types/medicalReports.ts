@@ -64,3 +64,9 @@ export interface MedicalReportDownloadResponse {
   fileUrl?: string;
   message?: string;
 }
+
+export interface MedicalReportPrintResponse {
+  success: boolean;
+  printUrl?: string;
+  message?: string;
+}

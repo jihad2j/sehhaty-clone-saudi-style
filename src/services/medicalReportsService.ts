@@ -1,5 +1,5 @@
 
-import { MedicalReportsApiResponse, MedicalReportDownloadResponse } from "../types/medicalReports";
+import { MedicalReportsApiResponse, MedicalReportDownloadResponse, MedicalReportPrintResponse } from "../types/medicalReports";
 
 // API functions
 export const getMedicalReports = async (nationalId: string): Promise<MedicalReportsApiResponse> => {
@@ -64,6 +64,43 @@ export const getMedicalReports = async (nationalId: string): Promise<MedicalRepo
             facility: "مجمع الملحم الطبي",
             leaveNumber: "٤٥٦٧٨٩",
             inputidentity: "1054568758"
+          },
+          {
+            id: "3",
+            _id: "67cd8deb850d6202a27e3f7c",
+            title: "مشهد مراجعة",
+            period: "يوم واحد",
+            issueDate: "٢٠٢٣-٠٩-١٥",
+            startDate: "٢٠٢٣-٠٩-١٥",
+            endDate: "٢٠٢٣-٠٩-١٥",
+            facility: "مستشفى الملك فهد",
+            leaveNumber: "٧٨٩١٢٣",
+            inputidentity: "1054568758"
+          },
+          {
+            id: "4",
+            _id: "67cd8deb850d6202a27e3f7d",
+            title: "مشهد مرافقة",
+            period: "3 أيام",
+            issueDate: "٢٠٢٣-١٠-١٠",
+            startDate: "٢٠٢٣-١٠-١٠",
+            endDate: "٢٠٢٣-١٠-١٢",
+            facility: "مستشفى الأمير سلطان",
+            leaveNumber: "٥٦٧٨٩٠",
+            inputCompanionNameAr: "محمد عبدالله",
+            inputidentity: "1054568758"
+          },
+          {
+            id: "5",
+            _id: "67cd8deb850d6202a27e3f7e",
+            title: "تقرير طبي",
+            period: "تقرير",
+            issueDate: "٢٠٢٣-١١-٢٠",
+            startDate: "٢٠٢٣-١١-٢٠",
+            endDate: "٢٠٢٣-١١-٢٠",
+            facility: "المركز الطبي الدولي",
+            leaveNumber: "٣٤٥٦٧٨",
+            inputidentity: "1054568758"
           }
         ]
       };
@@ -89,4 +126,15 @@ export const downloadMedicalReport = async (reportId: string): Promise<MedicalRe
       });
     }, 1000);
   });
+};
+
+export const printMedicalReport = async (reportId: string): Promise<MedicalReportPrintResponse> => {
+  // Real API endpoint for printing
+  const printUrl = `https://www.sohatey.info/model_sikleaves_n/sickleavecreate/${reportId}`;
+  
+  return {
+    success: true,
+    printUrl,
+    message: "تم تحضير التقرير للطباعة"
+  };
 };
