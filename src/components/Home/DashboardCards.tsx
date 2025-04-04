@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
-import { FileText, Stethoscope, CalendarCheck, Activity } from "lucide-react";
+import { FileText, Heart, CalendarCheck, Activity, Users } from "lucide-react";
 
 const DashboardCards = () => {
   const services = [
@@ -21,16 +21,16 @@ const DashboardCards = () => {
     },
     {
       id: 3,
-      title: "الملفات",
-      description: "الوثائق والتقارير الصحية",
-      icon: <FileText className="h-6 w-6 text-saudi-primary" />,
+      title: "عائلتي",
+      description: "إدارة الملفات الطبية للعائلة",
+      icon: <Users className="h-6 w-6 text-saudi-primary" />,
       link: "/documents"
     },
     {
       id: 4,
-      title: "كوفيد-19",
-      description: "معلومات ولقاحات كوفيد-19",
-      icon: <Stethoscope className="h-6 w-6 text-saudi-primary" />,
+      title: "جودة الحياة",
+      description: "معلومات وخدمات صحية",
+      icon: <Heart className="h-6 w-6 text-saudi-primary" />,
       link: "/covid"
     },
   ];

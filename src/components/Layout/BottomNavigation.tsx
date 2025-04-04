@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { CalendarCheck, FileText, Home, User, Stethoscope, Activity } from "lucide-react";
+import { Home, Users, Heart, CalendarCheck, User } from "lucide-react";
 
 const BottomNavigation = () => {
   const location = useLocation();
@@ -23,19 +23,19 @@ const BottomNavigation = () => {
           <span className="text-xs mt-1">المواعيد</span>
         </Link>
         
-        <Link to="/medical-reports" className={`flex flex-col items-center justify-center ${isActive("/medical-reports") ? "text-saudi-primary" : "text-gray-500"}`}>
-          <Activity className="h-5 w-5" />
-          <span className="text-xs mt-1">التقارير</span>
+        <Link to="/covid" className={`flex flex-col items-center justify-center ${isActive("/covid") ? "text-saudi-primary" : "text-gray-500"}`}>
+          <Heart className="h-5 w-5" />
+          <span className="text-xs mt-1">جودة الحياة</span>
         </Link>
         
         <Link to="/documents" className={`flex flex-col items-center justify-center ${isActive("/documents") ? "text-saudi-primary" : "text-gray-500"}`}>
-          <FileText className="h-5 w-5" />
-          <span className="text-xs mt-1">الملفات</span>
+          <Users className="h-5 w-5" />
+          <span className="text-xs mt-1">عائلتي</span>
         </Link>
         
         <Link to="/profile" className={`flex flex-col items-center justify-center ${isActive("/profile") ? "text-saudi-primary" : "text-gray-500"}`}>
           <User className="h-5 w-5" />
-          <span className="text-xs mt-1">الملف</span>
+          <span className="text-xs mt-1">صحتي</span>
         </Link>
       </div>
     </div>

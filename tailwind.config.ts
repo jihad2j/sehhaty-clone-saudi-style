@@ -30,10 +30,10 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				saudi: {
-					primary: '#006C35',
-					light: '#4C9A74',
-					lighter: '#E8F5EE',
-					dark: '#004020',
+					primary: '#0EA5E9', // Updated to sky blue
+					light: '#38BDF8',
+					lighter: '#E0F2FE',
+					dark: '#0284C7',
 				},
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
