@@ -16,7 +16,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 199 89% 48%;
+    --primary: 196 98% 54%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
@@ -25,7 +25,7 @@
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 210 40% 96.1%;
+    --accent: 196 98% 94%;
     --accent-foreground: 222.2 47.4% 11.2%;
 
     --destructive: 0 84.2% 60.2%;
@@ -33,7 +33,7 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 199 89% 48%;
+    --ring: 196 98% 54%;
 
     --radius: 0.5rem;
   }
@@ -73,4 +73,37 @@
 
 .fade-exit-active {
   @apply opacity-0 transition-opacity duration-300;
+}
+
+/* Saudi health app colors */
+.bg-saudi-primary {
+  @apply bg-sky-500;
+}
+
+.text-saudi-primary {
+  @apply text-sky-500;
+}
+
+.bg-saudi-light {
+  @apply bg-sky-100;
+}
+
+.bg-saudi-lighter {
+  @apply bg-sky-50;
+}
+
+.bg-saudi-dark {
+  @apply bg-sky-600;
+}
+
+.hover\:bg-saudi-dark:hover {
+  @apply hover:bg-sky-600;
+}
+
+.border-saudi-primary {
+  @apply border-sky-500;
+}
+
+.ring-saudi-primary {
+  @apply ring-sky-500;
 }

@@ -1,8 +1,9 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, ChevronRight, FileText, Download, Search, Loader2 } from "lucide-react";
+import { ChevronDown, ChevronRight, FileText, Download, Search, Loader2, LogIn } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import Header from "../components/Layout/Header";
 import BottomNavigation from "../components/Layout/BottomNavigation";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,16 @@ const MedicalReports = () => {
   const [searchTriggered, setSearchTriggered] = useState<boolean>(false);
   const [selectedLeave, setSelectedLeave] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState<string | null>(null);
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    // Get the national ID from session storage (set during login)
+    const storedNationalId = sessionStorage.getItem("nationalId");
+    if (storedNationalId) {
+      setNationalId(storedNationalId);
+      setSearchTriggered(true);
+    }
+  }, []);
   
   const { data: reportsData, isLoading, isError, error } = useQuery({
     queryKey: ['medicalReports', nationalId],
@@ -55,6 +66,25 @@ const MedicalReports = () => {
       setIsDownloading(null);
     }
   };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem("nationalId");
+    navigate("/login");
+  };
+  
+  // Format report for display
+  const formatReportData = (report: SickLeave) => {
+    return {
+      id: report._id || report.id || "",
+      title: report.title || `إجازة مرضية (${report.inputdaynum || report.period || "غير محدد"})`,
+      period: report.period || report.inputdaynum || "غير محدد",
+      issueDate: report.issueDate || report.inputdatemin || "غير محدد",
+      startDate: report.startDate || report.inputdatefrom || "غير محدد",
+      endDate: report.endDate || report.inputdateto || "غير محدد",
+      facility: report.facility || report.inputcentralnamear || "غير محدد",
+      leaveNumber: report.leaveNumber || report.inputgsl || "غير محدد",
+    };
+  };
   
   return (
     <div className="min-h-screen bg-gray-100 pb-20">
@@ -71,6 +101,16 @@ const MedicalReports = () => {
             <ChevronRight className="h-5 w-5" />
           </Button>
           <h1 className="text-2xl font-bold">التقارير الطبية</h1>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            className="mr-auto"
+            onClick={handleLogout}
+          >
+            <LogIn className="h-4 w-4 ml-2 rotate-180" />
+            تسجيل الخروج
+          </Button>
         </div>
         
         {/* National ID input */}
@@ -86,7 +126,7 @@ const MedicalReports = () => {
             />
             <Button
               onClick={handleSearch}
-              className="bg-saudi-primary hover:bg-saudi-dark"
+              className="bg-sky-500 hover:bg-sky-600"
             >
               {isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -102,7 +142,7 @@ const MedicalReports = () => {
         
         {isLoading && (
           <div className="flex justify-center items-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-saudi-primary" />
+            <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
             <span className="mr-3 text-lg">جاري تحميل البيانات...</span>
           </div>
         )}
@@ -117,71 +157,74 @@ const MedicalReports = () => {
           <div className="mb-6">
             <h2 className="text-xl font-bold text-right mb-4">تقارير الإجازات</h2>
             
-            {reportsData.data.length === 0 ? (
+            {(!reportsData.data || reportsData.data.length === 0) ? (
               <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 p-4 rounded-lg">
                 <p className="text-center">لا توجد تقارير طبية متاحة لرقم الهوية المدخل.</p>
               </div>
             ) : (
               <div className="space-y-4">
-                {reportsData.data.map((leave) => (
-                  <div key={leave.id} className="bg-white rounded-xl overflow-hidden shadow">
-                    <div 
-                      className="p-4 cursor-pointer"
-                      onClick={() => handleLeaveClick(leave.id)}
-                    >
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center">
-                          <ChevronDown className={`h-6 w-6 text-saudi-primary ${selectedLeave === leave.id ? 'rotate-180' : ''} transition-transform`} />
-                          <div className="mr-3">
-                            <h3 className="font-bold text-lg">{leave.title}</h3>
-                            <p className="text-gray-500 text-sm">تاريخ الإصدار: {leave.issueDate}</p>
+                {reportsData.data.map((leave) => {
+                  const formattedLeave = formatReportData(leave);
+                  return (
+                    <div key={formattedLeave.id} className="bg-white rounded-xl overflow-hidden shadow">
+                      <div 
+                        className="p-4 cursor-pointer"
+                        onClick={() => handleLeaveClick(formattedLeave.id)}
+                      >
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center">
+                            <ChevronDown className={`h-6 w-6 text-sky-500 ${selectedLeave === formattedLeave.id ? 'rotate-180' : ''} transition-transform`} />
+                            <div className="mr-3">
+                              <h3 className="font-bold text-lg">{formattedLeave.title}</h3>
+                              <p className="text-gray-500 text-sm">تاريخ الإصدار: {formattedLeave.issueDate}</p>
+                            </div>
+                          </div>
+                          <FileText className="h-6 w-6 text-gray-400" />
+                        </div>
+                      </div>
+                      
+                      {selectedLeave === formattedLeave.id && (
+                        <div className="border-t">
+                          <div className="grid grid-cols-2 divide-x divide-x-reverse divide-gray-200">
+                            <div className="p-4 text-center">
+                              <p className="text-gray-500 mb-1">تاريخ بداية الإجازة</p>
+                              <p className="font-bold">{formattedLeave.startDate}</p>
+                            </div>
+                            <div className="p-4 text-center">
+                              <p className="text-gray-500 mb-1">تاريخ نهاية الإجازة</p>
+                              <p className="font-bold">{formattedLeave.endDate}</p>
+                            </div>
+                          </div>
+                          
+                          <div className="border-t p-4">
+                            <p className="text-gray-500 mb-1">المنشأة الصحية</p>
+                            <p className="font-bold">{formattedLeave.facility}</p>
+                          </div>
+                          
+                          <div className="border-t p-4">
+                            <p className="text-gray-500 mb-1">رقم الإجازة</p>
+                            <p className="font-bold">{formattedLeave.leaveNumber}</p>
+                          </div>
+                          
+                          <div className="border-t p-4 flex justify-center">
+                            <Button 
+                              className="bg-white text-sky-500 border border-sky-500 hover:bg-sky-50 flex items-center"
+                              onClick={() => handleDownload(formattedLeave.id)}
+                              disabled={isDownloading === formattedLeave.id}
+                            >
+                              {isDownloading === formattedLeave.id ? (
+                                <Loader2 className="h-5 w-5 ml-2 animate-spin" />
+                              ) : (
+                                <Download className="h-5 w-5 ml-2" />
+                              )}
+                              تحميل تقرير الإجازة
+                            </Button>
                           </div>
                         </div>
-                        <FileText className="h-6 w-6 text-gray-400" />
-                      </div>
+                      )}
                     </div>
-                    
-                    {selectedLeave === leave.id && (
-                      <div className="border-t">
-                        <div className="grid grid-cols-2 divide-x divide-x-reverse divide-gray-200">
-                          <div className="p-4 text-center">
-                            <p className="text-gray-500 mb-1">تاريخ بداية الإجازة</p>
-                            <p className="font-bold">{leave.startDate}</p>
-                          </div>
-                          <div className="p-4 text-center">
-                            <p className="text-gray-500 mb-1">تاريخ نهاية الإجازة</p>
-                            <p className="font-bold">{leave.endDate}</p>
-                          </div>
-                        </div>
-                        
-                        <div className="border-t p-4">
-                          <p className="text-gray-500 mb-1">المنشأة الصحية</p>
-                          <p className="font-bold">{leave.facility}</p>
-                        </div>
-                        
-                        <div className="border-t p-4">
-                          <p className="text-gray-500 mb-1">رقم الإجازة</p>
-                          <p className="font-bold">{leave.leaveNumber}</p>
-                        </div>
-                        
-                        <div className="border-t p-4 flex justify-center">
-                          <Button 
-                            className="bg-white text-saudi-primary border border-saudi-primary hover:bg-saudi-lighter flex items-center"
-                            onClick={() => handleDownload(leave.id)}
-                            disabled={isDownloading === leave.id}
-                          >
-                            {isDownloading === leave.id ? (
-                              <Loader2 className="h-5 w-5 ml-2 animate-spin" />
-                            ) : (
-                              <Download className="h-5 w-5 ml-2" />
-                            )}
-                            تحميل تقرير الإجازة
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
