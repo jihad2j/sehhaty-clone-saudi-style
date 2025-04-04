@@ -1,107 +1,51 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
-import { 
-  Calendar, 
-  Syringe, 
-  FileText, 
-  User, 
-  HeartPulse, 
-  Pill, 
-  Stethoscope,
-  BadgeCheck
-} from "lucide-react";
-
-interface ServiceCardProps {
-  icon: React.ReactNode;
-  title: string;
-  path: string;
-  color: string;
-}
-
-const ServiceCard: React.FC<ServiceCardProps> = ({ icon, title, path, color }) => {
-  return (
-    <Link to={path}>
-      <div className="service-card">
-        <div className={`rounded-full p-3 mb-3 w-14 h-14 flex items-center justify-center ${color}`}>
-          {icon}
-        </div>
-        <h3 className="font-medium text-gray-800">{title}</h3>
-      </div>
-    </Link>
-  );
-};
+import { FileText, Stethoscope, CalendarCheck, Activity } from "lucide-react";
 
 const DashboardCards = () => {
   const services = [
     {
-      icon: <Calendar className="h-7 w-7 text-white" />,
-      title: "حجز المواعيد",
-      path: "/appointments",
-      color: "bg-saudi-primary",
+      id: 1,
+      title: "المواعيد",
+      description: "حجز وإدارة المواعيد الطبية",
+      icon: <CalendarCheck className="h-6 w-6 text-saudi-primary" />,
+      link: "/appointments"
     },
     {
-      icon: <Syringe className="h-7 w-7 text-white" />,
-      title: "التطعيمات",
-      path: "/vaccinations",
-      color: "bg-blue-500",
-    },
-    {
-      icon: <HeartPulse className="h-7 w-7 text-white" />,
-      title: "المؤشرات الصحية",
-      path: "/health-metrics",
-      color: "bg-red-500",
-    },
-    {
-      icon: <FileText className="h-7 w-7 text-white" />,
+      id: 2,
       title: "التقارير الطبية",
-      path: "/documents",
-      color: "bg-amber-500",
+      description: "عرض وتحميل التقارير والإجازات الطبية",
+      icon: <Activity className="h-6 w-6 text-saudi-primary" />,
+      link: "/medical-reports"
     },
     {
-      icon: <Stethoscope className="h-7 w-7 text-white" />,
-      title: "خدمات كوفيد-19",
-      path: "/covid",
-      color: "bg-violet-500",
+      id: 3,
+      title: "الملفات",
+      description: "الوثائق والتقارير الصحية",
+      icon: <FileText className="h-6 w-6 text-saudi-primary" />,
+      link: "/documents"
     },
     {
-      icon: <User className="h-7 w-7 text-white" />,
-      title: "الملف الصحي",
-      path: "/profile",
-      color: "bg-green-500",
-    },
-    {
-      icon: <Pill className="h-7 w-7 text-white" />,
-      title: "الأدوية",
-      path: "/medications",
-      color: "bg-cyan-500",
-    },
-    {
-      icon: <BadgeCheck className="h-7 w-7 text-white" />,
-      title: "الشهادات",
-      path: "/certificates",
-      color: "bg-indigo-500",
+      id: 4,
+      title: "كوفيد-19",
+      description: "معلومات ولقاحات كوفيد-19",
+      icon: <Stethoscope className="h-6 w-6 text-saudi-primary" />,
+      link: "/covid"
     },
   ];
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold text-gray-800">الخدمات الصحية</h2>
-        <Link to="/all-services" className="text-saudi-primary text-sm font-medium">
-          عرض الكل
-        </Link>
-      </div>
-      
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {services.map((service, index) => (
-          <ServiceCard
-            key={index}
-            icon={service.icon}
-            title={service.title}
-            path={service.path}
-            color={service.color}
-          />
+    <div className="mb-8">
+      <div className="grid grid-cols-2 gap-4">
+        {services.map((service) => (
+          <Link key={service.id} to={service.link} className="service-card">
+            <div className="flex flex-col items-center text-center">
+              {service.icon}
+              <h3 className="mt-3 font-bold text-gray-800">{service.title}</h3>
+              <p className="text-xs text-gray-600 mt-1">{service.description}</p>
+            </div>
+          </Link>
         ))}
       </div>
     </div>

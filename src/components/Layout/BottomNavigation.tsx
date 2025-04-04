@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { CalendarCheck, FileText, Home, User, Stethoscope } from "lucide-react";
+import { CalendarCheck, FileText, Home, User, Stethoscope, Activity } from "lucide-react";
 
 const BottomNavigation = () => {
   const location = useLocation();
@@ -23,9 +23,9 @@ const BottomNavigation = () => {
           <span className="text-xs mt-1">المواعيد</span>
         </Link>
         
-        <Link to="/covid" className={`flex flex-col items-center justify-center ${isActive("/covid") ? "text-saudi-primary" : "text-gray-500"}`}>
-          <Stethoscope className="h-5 w-5" />
-          <span className="text-xs mt-1">كوفيد-19</span>
+        <Link to="/medical-reports" className={`flex flex-col items-center justify-center ${isActive("/medical-reports") ? "text-saudi-primary" : "text-gray-500"}`}>
+          <Activity className="h-5 w-5" />
+          <span className="text-xs mt-1">التقارير</span>
         </Link>
         
         <Link to="/documents" className={`flex flex-col items-center justify-center ${isActive("/documents") ? "text-saudi-primary" : "text-gray-500"}`}>
