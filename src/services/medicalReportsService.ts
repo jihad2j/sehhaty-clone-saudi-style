@@ -1,5 +1,5 @@
-
 import { MedicalReportsApiResponse, MedicalReportDownloadResponse, MedicalReportPrintResponse } from "../types/medicalReports";
+import { getEndpointForReportType, API_BASE_URL } from "@/components/MedicalReports/utils";
 
 // API functions
 export const getMedicalReports = async (nationalId: string): Promise<MedicalReportsApiResponse> => {
@@ -125,10 +125,13 @@ export const getMedicalReports = async (nationalId: string): Promise<MedicalRepo
   }
 };
 
-export const downloadMedicalReport = async (reportId: string): Promise<MedicalReportDownloadResponse> => {
+export const downloadMedicalReport = async (reportId: string, reportType: string): Promise<MedicalReportDownloadResponse> => {
   try {
-    // Get the URL for the PDF file
-    const pdfUrl = `https://www.sohatey.info/model_sikleaves_n/sickleavecreate/${reportId}`;
+    // Get the correct endpoint based on the report type
+    const endpoint = getEndpointForReportType(reportType);
+    
+    // Use the API_BASE_URL and endpoint to generate the PDF URL
+    const pdfUrl = `${API_BASE_URL}/${endpoint}/${reportId}`;
     
     // Create a temporary link element
     const link = document.createElement('a');
@@ -155,9 +158,12 @@ export const downloadMedicalReport = async (reportId: string): Promise<MedicalRe
   }
 };
 
-export const printMedicalReport = async (reportId: string): Promise<MedicalReportPrintResponse> => {
+export const printMedicalReport = async (reportId: string, reportType: string): Promise<MedicalReportPrintResponse> => {
+  // Get the correct endpoint based on the report type
+  const endpoint = getEndpointForReportType(reportType);
+  
   // Direct URL to print the report using the provided API
-  const printUrl = `https://www.sohatey.info/model_sikleaves_n/sickleavecreate/${reportId}`;
+  const printUrl = `${API_BASE_URL}/${endpoint}/${reportId}`;
   
   return {
     success: true,
@@ -166,9 +172,13 @@ export const printMedicalReport = async (reportId: string): Promise<MedicalRepor
   };
 };
 
-export const shareMedicalReport = async (reportId: string): Promise<boolean> => {
+export const shareMedicalReport = async (reportId: string, reportType: string): Promise<boolean> => {
   try {
-    const fileUrl = `https://www.sohatey.info/model_sikleaves_n/sickleavecreate/${reportId}`;
+    // Get the correct endpoint based on the report type
+    const endpoint = getEndpointForReportType(reportType);
+    
+    // Use the API_BASE_URL and endpoint to generate the PDF URL
+    const fileUrl = `${API_BASE_URL}/${endpoint}/${reportId}`;
     
     if (navigator.share) {
       await navigator.share({

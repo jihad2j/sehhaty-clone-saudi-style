@@ -27,6 +27,7 @@ interface FormattedLeave {
   facility: string;
   leaveNumber: string;
   reportType: string;
+  reportTypeRaw: string; // Raw value of input_sickleave_type
   companion?: string | null;
   doctor: string;
 }
@@ -36,8 +37,8 @@ interface ReportItemProps {
   isDownloading: string | null;
   isPrinting: string | null;
   isSharing: string | null;
-  onDownload: (id: string) => void;
-  onShare: (id: string) => void;
+  onDownload: (id: string, reportType: string) => void;
+  onShare: (id: string, reportType: string) => void;
 }
 
 const ReportItem: React.FC<ReportItemProps> = ({
@@ -101,7 +102,7 @@ const ReportItem: React.FC<ReportItemProps> = ({
         <div className="border-t p-4 flex justify-center gap-3">
           <Button 
             className="bg-white text-blue-600 border border-blue-600 hover:bg-blue-50 flex-1 flex items-center justify-center"
-            onClick={() => onDownload(report.id)}
+            onClick={() => onDownload(report.id, report.reportTypeRaw)}
             disabled={isDownloading === report.id || isPrinting === report.id || isSharing === report.id}
           >
             {isDownloading === report.id ? (
@@ -114,7 +115,7 @@ const ReportItem: React.FC<ReportItemProps> = ({
           
           <Button 
             className="bg-blue-600 text-white hover:bg-blue-700 flex-1 flex items-center justify-center"
-            onClick={() => onShare(report.id)}
+            onClick={() => onShare(report.id, report.reportTypeRaw)}
             disabled={isDownloading === report.id || isPrinting === report.id || isSharing === report.id}
           >
             {isSharing === report.id ? (

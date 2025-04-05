@@ -44,10 +44,10 @@ const MedicalReports = () => {
     refetch();
   };
   
-  const handleDownload = async (reportId: string) => {
+  const handleDownload = async (reportId: string, reportType: string) => {
     setIsDownloading(reportId);
     try {
-      const response = await downloadMedicalReport(reportId);
+      const response = await downloadMedicalReport(reportId, reportType);
       if (response.success && response.fileUrl) {
         toast.success("تم تحميل التقرير بنجاح");
       } else {
@@ -61,11 +61,11 @@ const MedicalReports = () => {
     }
   };
 
-  const handlePrint = async (reportId: string) => {
+  const handlePrint = async (reportId: string, reportType: string) => {
     setIsPrinting(reportId);
     try {
       // Open the print URL in a new window
-      const printUrl = `https://www.sohatey.info/model_sikleaves_n/sickleavecreate/${reportId}`;
+      const { printUrl } = await printMedicalReport(reportId, reportType);
       window.open(printUrl, '_blank');
       toast.success("تم فتح التقرير للطباعة");
     } catch (error) {
@@ -76,10 +76,10 @@ const MedicalReports = () => {
     }
   };
 
-  const handleShare = async (reportId: string) => {
+  const handleShare = async (reportId: string, reportType: string) => {
     setIsSharing(reportId);
     try {
-      const success = await shareMedicalReport(reportId);
+      const success = await shareMedicalReport(reportId, reportType);
       if (success) {
         toast.success("تم مشاركة التقرير بنجاح");
       } else {

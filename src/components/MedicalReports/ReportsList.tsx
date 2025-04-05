@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 import ReportItem from "./ReportItem";
 import { SickLeave } from "@/types/medicalReports";
 import { REPORT_TYPES } from "./ReportTypeFilter";
+import { determineReportType } from "./utils";
 
 interface FormattedLeave {
   id: string;
@@ -16,6 +17,7 @@ interface FormattedLeave {
   facility: string;
   leaveNumber: string;
   reportType: string;
+  reportTypeRaw: string; // Raw value of input_sickleave_type
   companion?: string | null;
   doctor: string;
 }
@@ -27,8 +29,8 @@ interface ReportsListProps {
   isDownloading: string | null;
   isPrinting: string | null;
   isSharing: string | null;
-  onDownload: (id: string) => void;
-  onShare: (id: string) => void;
+  onDownload: (id: string, reportType: string) => void;
+  onShare: (id: string, reportType: string) => void;
 }
 
 const ReportsList: React.FC<ReportsListProps> = ({
@@ -41,28 +43,11 @@ const ReportsList: React.FC<ReportsListProps> = ({
   onDownload,
   onShare
 }) => {
-  // Determine report type based on title or input_sickleave_type
-  const determineReportType = (report: SickLeave): string => {
-    if (report.input_sickleave_type) {
-      return report.input_sickleave_type;
-    }
-    
-    const title = report.title?.toLowerCase() || '';
-    
-    if (title.includes('مرافق') || report.inputCompanionNameAr) {
-      return REPORT_TYPES.COMPANION;
-    } else if (title.includes('مراجعة') || title.includes('followup')) {
-      return REPORT_TYPES.FOLLOWUP;
-    } else if (title.includes('تقرير طبي') || title.includes('medical report')) {
-      return REPORT_TYPES.MEDICAL_REPORT;
-    } else {
-      return REPORT_TYPES.SICK_LEAVE; // Default
-    }
-  };
-
   // Format report for display
   const formatReportData = (report: SickLeave): FormattedLeave => {
-    const reportType = report.input_sickleave_type || determineReportType(report);
+    const reportType = determineReportType(report);
+    const reportTypeRaw = report.input_sickleave_type || "sickleave"; // Default to sickleave if not provided
+    
     let title = '';
     
     switch(reportType) {
@@ -89,6 +74,7 @@ const ReportsList: React.FC<ReportsListProps> = ({
       facility: report.facility || report.inputcentralnamear || "غير محدد",
       leaveNumber: report.leaveNumber || report.inputgsl || "غير محدد",
       reportType: reportType,
+      reportTypeRaw: reportTypeRaw,
       companion: report.inputCompanionNameAr || null,
       doctor: report.inputdoctorar || "غير محدد"
     };
