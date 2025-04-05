@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, FileText, Download, Search, Loader2, FilePlus, FileCheck, Calendar, Printer, Share2 } from "lucide-react";
+import { ChevronDown, FileText, Download, Search, Loader2, FilePlus, FileCheck, Calendar, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import Header from "../components/Layout/Header";
 import BottomNavigation from "../components/Layout/BottomNavigation";
@@ -17,6 +17,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Progress } from "@/components/ui/progress";
 
 // Define report types
 const REPORT_TYPES = {
@@ -57,7 +58,7 @@ const MedicalReports = () => {
   const [nationalId, setNationalId] = useState<string>("");
   const [searchTriggered, setSearchTriggered] = useState<boolean>(false);
   const [isDownloading, setIsDownloading] = useState<string | null>(null);
-  const [isPrinting, setIsPrinting] = useState<string | null>(null);
+  const [downloadProgress, setDownloadProgress] = useState<number>(0);
   const [isSharing, setIsSharing] = useState<string | null>(null);
   const [reportTypeFilter, setReportTypeFilter] = useState<string | "all">("all");
   
@@ -69,6 +70,13 @@ const MedicalReports = () => {
       setSearchTriggered(true);
     }
   }, []);
+
+  // Reset progress when no download is in progress
+  useEffect(() => {
+    if (!isDownloading) {
+      setDownloadProgress(0);
+    }
+  }, [isDownloading]);
   
   const { data: reportsData, isLoading, isError, refetch } = useQuery({
     queryKey: ['medicalReports', nationalId],
@@ -89,47 +97,54 @@ const MedicalReports = () => {
   
   const handleDownload = async (reportId: string) => {
     setIsDownloading(reportId);
+    
+    // Simulate download progress
+    const interval = setInterval(() => {
+      setDownloadProgress((prev) => {
+        const newProgress = prev + 20;
+        return newProgress >= 100 ? 100 : newProgress;
+      });
+    }, 300);
+    
     try {
+      toast.loading("جاري تحميل الإجازة...", { id: "download-toast" });
+      
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
       const response = await downloadMedicalReport(reportId);
+      
       if (response.success && response.fileUrl) {
-        toast.success("تم تحميل التقرير بنجاح");
+        toast.success("تم تحميل وفتح التقرير بنجاح", { id: "download-toast" });
       } else {
-        toast.error(response.message || "حدث خطأ أثناء تحميل التقرير");
+        toast.error(response.message || "حدث خطأ أثناء تحميل التقرير", { id: "download-toast" });
       }
     } catch (error) {
-      toast.error("حدث خطأ أثناء تحميل التقرير");
+      toast.error("حدث خطأ أثناء تحميل التقرير", { id: "download-toast" });
       console.error(error);
     } finally {
+      clearInterval(interval);
+      setDownloadProgress(0);
       setIsDownloading(null);
-    }
-  };
-
-  const handlePrint = async (reportId: string) => {
-    setIsPrinting(reportId);
-    try {
-      // Open the print URL in a new window
-      const printUrl = `https://www.sohatey.info/model_sikleaves_n/sickleavecreate/${reportId}`;
-      window.open(printUrl, '_blank');
-      toast.success("تم فتح التقرير للطباعة");
-    } catch (error) {
-      toast.error("حدث خطأ أثناء طباعة التقرير");
-      console.error(error);
-    } finally {
-      setIsPrinting(null);
     }
   };
 
   const handleShare = async (reportId: string) => {
     setIsSharing(reportId);
     try {
+      toast.loading("جاري تحضير المشاركة...", { id: "share-toast" });
+      
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
       const success = await shareMedicalReport(reportId);
       if (success) {
-        toast.success("تم مشاركة التقرير بنجاح");
+        toast.success("تم مشاركة التقرير بنجاح", { id: "share-toast" });
       } else {
-        toast.info("تم نسخ رابط التقرير إلى الحافظة");
+        toast.info("تم نسخ رابط التقرير إلى الحافظة", { id: "share-toast" });
       }
     } catch (error) {
-      toast.error("حدث خطأ أثناء مشاركة التقرير");
+      toast.error("حدث خطأ أثناء مشاركة التقرير", { id: "share-toast" });
       console.error(error);
     } finally {
       setIsSharing(null);
@@ -269,7 +284,15 @@ const MedicalReports = () => {
                             <div className="flex items-center">
                               <div>
                                 <h3 className="font-bold text-lg text-gray-800 text-right">{formattedLeave.title}</h3>
-                                <p className="text-gray-500 text-sm text-right">تاريخ الإصدار: {formattedLeave.issueDate}</p>
+                                <p className="text-gray-500 text-sm text-right mb-2">تاريخ الإصدار: {formattedLeave.issueDate}</p>
+                                <div className="flex flex-col text-right">
+                                  <p className="text-gray-500 text-sm">
+                                    <span className="font-semibold">تاريخ البداية:</span> {formattedLeave.startDate}
+                                  </p>
+                                  <p className="text-gray-500 text-sm">
+                                    <span className="font-semibold">تاريخ النهاية:</span> {formattedLeave.endDate}
+                                  </p>
+                                </div>
                               </div>
                             </div>
                             <div>
@@ -277,19 +300,6 @@ const MedicalReports = () => {
                             </div>
                           </div>
                         </AccordionTrigger>
-                        
-                        <div className="border-t border-gray-200">
-                          <div className="grid grid-cols-2 divide-x divide-x-reverse">
-                            <div className="p-3 text-center">
-                              <p className="text-gray-500 text-sm mb-1">تاريخ بداية الإجازة</p>
-                              <p className="font-bold text-gray-800">{formattedLeave.startDate}</p>
-                            </div>
-                            <div className="p-3 text-center">
-                              <p className="text-gray-500 text-sm mb-1">تاريخ نهاية الإجازة</p>
-                              <p className="font-bold text-gray-800">{formattedLeave.endDate}</p>
-                            </div>
-                          </div>
-                        </div>
                         
                         <AccordionContent className="pb-0">
                           <div className="border-t p-4">
@@ -312,11 +322,18 @@ const MedicalReports = () => {
                             <p className="font-bold text-gray-800">{formattedLeave.doctor}</p>
                           </div>
                           
-                          <div className="border-t p-4 flex justify-center gap-3">
+                          {isDownloading === formattedLeave.id && (
+                            <div className="border-t p-4">
+                              <p className="text-gray-600 mb-2 text-center">جاري تحميل التقرير...</p>
+                              <Progress value={downloadProgress} className="h-2 w-full" />
+                            </div>
+                          )}
+                          
+                          <div className="border-t p-4 flex gap-3">
                             <Button 
-                              className="bg-white text-blue-600 border border-blue-600 hover:bg-blue-50 flex-1 flex items-center justify-center"
+                              className="bg-blue-600 text-white hover:bg-blue-700 flex-1 flex items-center justify-center"
                               onClick={() => handleDownload(formattedLeave.id)}
-                              disabled={isDownloading === formattedLeave.id || isPrinting === formattedLeave.id || isSharing === formattedLeave.id}
+                              disabled={isDownloading !== null || isSharing !== null}
                             >
                               {isDownloading === formattedLeave.id ? (
                                 <Loader2 className="h-5 w-5 ml-2 animate-spin" />
@@ -327,9 +344,9 @@ const MedicalReports = () => {
                             </Button>
                             
                             <Button 
-                              className="bg-blue-600 text-white hover:bg-blue-700 flex-1 flex items-center justify-center"
+                              className="bg-white text-blue-600 border border-blue-600 hover:bg-blue-50 flex-1 flex items-center justify-center"
                               onClick={() => handleShare(formattedLeave.id)}
-                              disabled={isDownloading === formattedLeave.id || isPrinting === formattedLeave.id || isSharing === formattedLeave.id}
+                              disabled={isDownloading !== null || isSharing !== null}
                             >
                               {isSharing === formattedLeave.id ? (
                                 <Loader2 className="h-5 w-5 ml-2 animate-spin" />
