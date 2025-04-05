@@ -1,9 +1,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, ChevronRight, FileText, Download, Search, Loader2, LogIn, FilePlus, FileCheck, Calendar, Printer } from "lucide-react";
+import { ChevronDown, FileText, Download, Search, Loader2, FilePlus, FileCheck, Calendar, Printer } from "lucide-react";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
 import Header from "../components/Layout/Header";
 import BottomNavigation from "../components/Layout/BottomNavigation";
 import { Button } from "@/components/ui/button";
@@ -51,7 +50,6 @@ const MedicalReports = () => {
   const [isDownloading, setIsDownloading] = useState<string | null>(null);
   const [isPrinting, setIsPrinting] = useState<string | null>(null);
   const [reportTypeFilter, setReportTypeFilter] = useState<string | "all">("all");
-  const navigate = useNavigate();
   
   useEffect(() => {
     // Get the national ID from session storage (set during login)
@@ -62,7 +60,7 @@ const MedicalReports = () => {
     }
   }, []);
   
-  const { data: reportsData, isLoading, isError, error, refetch } = useQuery({
+  const { data: reportsData, isLoading, isError, refetch } = useQuery({
     queryKey: ['medicalReports', nationalId],
     queryFn: () => getMedicalReports(nationalId),
     enabled: searchTriggered && nationalId.length > 0,
@@ -103,25 +101,18 @@ const MedicalReports = () => {
   const handlePrint = async (reportId: string) => {
     setIsPrinting(reportId);
     try {
-      const response = await printMedicalReport(reportId);
-      if (response.success) {
-        // Open the print URL in a new window
-        window.open(response.printUrl, '_blank');
-        toast.success("تم فتح التقرير للطباعة");
-      } else {
-        toast.error(response.message || "حدث خطأ أثناء طباعة التقرير");
-      }
+      // Use the provided API URL with the report ID
+      const printUrl = `https://www.sohatey.info/model_sikleaves_n/sickleavecreate/${reportId}`;
+      
+      // Open the print URL in a new window
+      window.open(printUrl, '_blank');
+      toast.success("تم فتح التقرير للطباعة");
     } catch (error) {
       toast.error("حدث خطأ أثناء طباعة التقرير");
       console.error(error);
     } finally {
       setIsPrinting(null);
     }
-  };
-
-  const handleLogout = () => {
-    sessionStorage.removeItem("nationalId");
-    navigate("/login");
   };
   
   // Format report for display
@@ -164,46 +155,28 @@ const MedicalReports = () => {
   });
   
   return (
-    <div className="min-h-screen bg-gray-100 pb-20">
+    <div className="min-h-screen bg-gray-50 pb-20">
       <Header />
       
       <main className="container mx-auto px-4 py-6">
         <div className="flex items-center mb-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="mr-2"
-            onClick={() => window.history.back()}
-          >
-            <ChevronRight className="h-5 w-5" />
-          </Button>
-          <h1 className="text-2xl font-bold">التقارير الطبية</h1>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            className="mr-auto"
-            onClick={handleLogout}
-          >
-            <LogIn className="h-4 w-4 ml-2 rotate-180" />
-            تسجيل الخروج
-          </Button>
+          <h1 className="text-2xl font-bold text-gray-800">التقارير الطبية</h1>
         </div>
         
         {/* National ID input */}
         <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
-          <h2 className="text-lg font-bold mb-4">أدخل رقم الهوية للبحث عن التقارير</h2>
+          <h2 className="text-lg font-bold mb-4 text-gray-800">أدخل رقم الهوية للبحث عن التقارير</h2>
           <div className="flex gap-3 items-center">
             <Input
               type="text"
               placeholder="رقم الهوية"
               value={nationalId}
               onChange={(e) => setNationalId(e.target.value)}
-              className="flex-1"
+              className="flex-1 border-gray-300"
             />
             <Button
               onClick={handleSearch}
-              className="bg-sky-500 hover:bg-sky-600"
+              className="bg-green-600 hover:bg-green-700 text-white"
             >
               {isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -219,7 +192,7 @@ const MedicalReports = () => {
         
         {isLoading && (
           <div className="flex justify-center items-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
+            <Loader2 className="h-8 w-8 animate-spin text-green-500" />
             <span className="mr-3 text-lg">جاري تحميل البيانات...</span>
           </div>
         )}
@@ -233,14 +206,14 @@ const MedicalReports = () => {
         {searchTriggered && reportsData && !isLoading && (
           <div className="mb-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-right">تقارير الإجازات</h2>
+              <h2 className="text-xl font-bold text-right text-gray-800">تقارير الإجازات</h2>
               
               {/* Filter dropdown */}
               <Select 
                 value={reportTypeFilter} 
                 onValueChange={setReportTypeFilter}
               >
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-[180px] border-gray-300">
                   <SelectValue placeholder="جميع التقارير" />
                 </SelectTrigger>
                 <SelectContent>
@@ -273,9 +246,9 @@ const MedicalReports = () => {
                       >
                         <div className="flex justify-between items-center">
                           <div className="flex items-center">
-                            <ChevronDown className={`h-6 w-6 text-sky-500 ${selectedLeave === formattedLeave.id ? 'rotate-180' : ''} transition-transform`} />
+                            <ChevronDown className={`h-6 w-6 text-green-500 ${selectedLeave === formattedLeave.id ? 'rotate-180' : ''} transition-transform`} />
                             <div className="mr-3">
-                              <h3 className="font-bold text-lg">{formattedLeave.title}</h3>
+                              <h3 className="font-bold text-lg text-gray-800">{formattedLeave.title}</h3>
                               <p className="text-gray-500 text-sm">تاريخ الإصدار: {formattedLeave.issueDate}</p>
                               {formattedLeave.companion && (
                                 <p className="text-gray-500 text-sm">المرافق: {formattedLeave.companion}</p>
@@ -291,27 +264,27 @@ const MedicalReports = () => {
                           <div className="grid grid-cols-2 divide-x divide-x-reverse divide-gray-200">
                             <div className="p-4 text-center">
                               <p className="text-gray-500 mb-1">تاريخ بداية الإجازة</p>
-                              <p className="font-bold">{formattedLeave.startDate}</p>
+                              <p className="font-bold text-gray-800">{formattedLeave.startDate}</p>
                             </div>
                             <div className="p-4 text-center">
                               <p className="text-gray-500 mb-1">تاريخ نهاية الإجازة</p>
-                              <p className="font-bold">{formattedLeave.endDate}</p>
+                              <p className="font-bold text-gray-800">{formattedLeave.endDate}</p>
                             </div>
                           </div>
                           
                           <div className="border-t p-4">
                             <p className="text-gray-500 mb-1">المنشأة الصحية</p>
-                            <p className="font-bold">{formattedLeave.facility}</p>
+                            <p className="font-bold text-gray-800">{formattedLeave.facility}</p>
                           </div>
                           
                           <div className="border-t p-4">
                             <p className="text-gray-500 mb-1">رقم الإجازة</p>
-                            <p className="font-bold">{formattedLeave.leaveNumber}</p>
+                            <p className="font-bold text-gray-800">{formattedLeave.leaveNumber}</p>
                           </div>
                           
                           <div className="border-t p-4 flex justify-center gap-3">
                             <Button 
-                              className="bg-white text-sky-500 border border-sky-500 hover:bg-sky-50 flex items-center"
+                              className="bg-white text-green-600 border border-green-600 hover:bg-green-50 flex items-center"
                               onClick={() => handleDownload(formattedLeave.id)}
                               disabled={isDownloading === formattedLeave.id || isPrinting === formattedLeave.id}
                             >
@@ -324,7 +297,7 @@ const MedicalReports = () => {
                             </Button>
                             
                             <Button 
-                              className="bg-sky-500 text-white hover:bg-sky-600 flex items-center"
+                              className="bg-green-600 text-white hover:bg-green-700 flex items-center"
                               onClick={() => handlePrint(formattedLeave.id)}
                               disabled={isDownloading === formattedLeave.id || isPrinting === formattedLeave.id}
                             >

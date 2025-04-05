@@ -129,7 +129,7 @@ export const downloadMedicalReport = async (reportId: string): Promise<MedicalRe
 };
 
 export const printMedicalReport = async (reportId: string): Promise<MedicalReportPrintResponse> => {
-  // Real API endpoint for printing
+  // Direct URL to print the report using the provided API
   const printUrl = `https://www.sohatey.info/model_sikleaves_n/sickleavecreate/${reportId}`;
   
   return {
