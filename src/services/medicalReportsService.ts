@@ -1,3 +1,4 @@
+
 import { MedicalReportsApiResponse, MedicalReportDownloadResponse, MedicalReportPrintResponse } from "../types/medicalReports";
 
 // API functions
@@ -129,8 +130,16 @@ export const downloadMedicalReport = async (reportId: string): Promise<MedicalRe
     // Get the URL for the PDF file
     const pdfUrl = `https://www.sohatey.info/model_sikleaves_n/sickleavecreate/${reportId}`;
     
-    // Open the PDF in a new tab directly
-    window.open(pdfUrl, '_blank');
+    // Create a temporary link element
+    const link = document.createElement('a');
+    link.href = pdfUrl;
+    link.target = '_blank';
+    link.download = 'sickleaves.pdf';
+    
+    // Trigger download
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
     
     return {
       success: true,
