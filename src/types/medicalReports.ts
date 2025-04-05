@@ -9,6 +9,7 @@ export interface SickLeave {
   endDate?: string;
   facility?: string;
   leaveNumber?: string;
+  input_sickleave_type?: string;
   inputgsl?: string;
   inputindurationh?: string;
   inputdurationm?: string;

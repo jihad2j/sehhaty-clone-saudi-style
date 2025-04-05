@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, FileText, Download, Search, Loader2, FilePlus, FileCheck, Calendar, Printer } from "lucide-react";
+import { ChevronDown, FileText, Download, Search, Loader2, FilePlus, FileCheck, Calendar, Printer, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import Header from "../components/Layout/Header";
 import BottomNavigation from "../components/Layout/BottomNavigation";
@@ -9,20 +9,26 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getMedicalReports, downloadMedicalReport, printMedicalReport } from "@/services/medicalReportsService";
+import { getMedicalReports, downloadMedicalReport, printMedicalReport, shareMedicalReport } from "@/services/medicalReportsService";
 import type { SickLeave } from "@/types/medicalReports";
+import { 
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 // Define report types
 const REPORT_TYPES = {
-  SICK_LEAVE: "sick_leave",
-  FOLLOWUP: "followup",
-  COMPANION: "companion",
-  MEDICAL_REPORT: "medical_report"
+  SICK_LEAVE: "إجازة مرضية",
+  FOLLOWUP: "مشهد مراجعة",
+  COMPANION: "مشهد مرافقة",
+  MEDICAL_REPORT: "تقرير طبي"
 };
 
 // Icons for different report types
 const ReportTypeIcons = {
-  [REPORT_TYPES.SICK_LEAVE]: <FilePlus className="h-6 w-6 text-orange-400" />,
+  [REPORT_TYPES.SICK_LEAVE]: <FilePlus className="h-6 w-6 text-blue-400" />,
   [REPORT_TYPES.FOLLOWUP]: <FileCheck className="h-6 w-6 text-green-400" />,
   [REPORT_TYPES.COMPANION]: <Calendar className="h-6 w-6 text-purple-400" />,
   [REPORT_TYPES.MEDICAL_REPORT]: <FileText className="h-6 w-6 text-sky-400" />
@@ -30,6 +36,10 @@ const ReportTypeIcons = {
 
 // Function to determine report type
 const determineReportType = (report: SickLeave): string => {
+  if (report.input_sickleave_type) {
+    return report.input_sickleave_type;
+  }
+  
   const title = report.title?.toLowerCase() || '';
   
   if (title.includes('مرافق') || report.inputCompanionNameAr) {
@@ -46,9 +56,9 @@ const determineReportType = (report: SickLeave): string => {
 const MedicalReports = () => {
   const [nationalId, setNationalId] = useState<string>("");
   const [searchTriggered, setSearchTriggered] = useState<boolean>(false);
-  const [selectedLeave, setSelectedLeave] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState<string | null>(null);
   const [isPrinting, setIsPrinting] = useState<string | null>(null);
+  const [isSharing, setIsSharing] = useState<string | null>(null);
   const [reportTypeFilter, setReportTypeFilter] = useState<string | "all">("all");
   
   useEffect(() => {
@@ -66,10 +76,6 @@ const MedicalReports = () => {
     enabled: searchTriggered && nationalId.length > 0,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
-  
-  const handleLeaveClick = (leaveId: string) => {
-    setSelectedLeave(selectedLeave === leaveId ? null : leaveId);
-  };
   
   const handleSearch = () => {
     if (nationalId.trim().length < 5) {
@@ -101,10 +107,8 @@ const MedicalReports = () => {
   const handlePrint = async (reportId: string) => {
     setIsPrinting(reportId);
     try {
-      // Use the provided API URL with the report ID
-      const printUrl = `https://www.sohatey.info/model_sikleaves_n/sickleavecreate/${reportId}`;
-      
       // Open the print URL in a new window
+      const printUrl = `https://www.sohatey.info/model_sikleaves_n/sickleavecreate/${reportId}`;
       window.open(printUrl, '_blank');
       toast.success("تم فتح التقرير للطباعة");
     } catch (error) {
@@ -114,10 +118,27 @@ const MedicalReports = () => {
       setIsPrinting(null);
     }
   };
+
+  const handleShare = async (reportId: string) => {
+    setIsSharing(reportId);
+    try {
+      const success = await shareMedicalReport(reportId);
+      if (success) {
+        toast.success("تم مشاركة التقرير بنجاح");
+      } else {
+        toast.info("تم نسخ رابط التقرير إلى الحافظة");
+      }
+    } catch (error) {
+      toast.error("حدث خطأ أثناء مشاركة التقرير");
+      console.error(error);
+    } finally {
+      setIsSharing(null);
+    }
+  };
   
   // Format report for display
   const formatReportData = (report: SickLeave) => {
-    const reportType = determineReportType(report);
+    const reportType = report.input_sickleave_type || determineReportType(report);
     let title = '';
     
     switch(reportType) {
@@ -144,14 +165,16 @@ const MedicalReports = () => {
       facility: report.facility || report.inputcentralnamear || "غير محدد",
       leaveNumber: report.leaveNumber || report.inputgsl || "غير محدد",
       reportType: reportType,
-      companion: report.inputCompanionNameAr || null
+      companion: report.inputCompanionNameAr || null,
+      doctor: report.inputdoctorar || "غير محدد"
     };
   };
 
   // Filter reports by type if a filter is selected
   const filteredReports = reportsData?.data?.filter(report => {
     if (reportTypeFilter === "all") return true;
-    return determineReportType(report) === reportTypeFilter;
+    const reportType = report.input_sickleave_type || determineReportType(report);
+    return reportType === reportTypeFilter;
   });
   
   return (
@@ -176,7 +199,7 @@ const MedicalReports = () => {
             />
             <Button
               onClick={handleSearch}
-              className="bg-green-600 hover:bg-green-700 text-white"
+              className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               {isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -192,7 +215,7 @@ const MedicalReports = () => {
         
         {isLoading && (
           <div className="flex justify-center items-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-green-500" />
+            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
             <span className="mr-3 text-lg">جاري تحميل البيانات...</span>
           </div>
         )}
@@ -236,40 +259,42 @@ const MedicalReports = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                {filteredReports?.map((leave) => {
-                  const formattedLeave = formatReportData(leave);
-                  return (
-                    <div key={formattedLeave.id} className="bg-white rounded-xl overflow-hidden shadow">
-                      <div 
-                        className="p-4 cursor-pointer"
-                        onClick={() => handleLeaveClick(formattedLeave.id)}
-                      >
-                        <div className="flex justify-between items-center">
-                          <div className="flex items-center">
-                            <ChevronDown className={`h-6 w-6 text-green-500 ${selectedLeave === formattedLeave.id ? 'rotate-180' : ''} transition-transform`} />
-                            <div className="mr-3">
-                              <h3 className="font-bold text-lg text-gray-800">{formattedLeave.title}</h3>
-                              <p className="text-gray-500 text-sm">تاريخ الإصدار: {formattedLeave.issueDate}</p>
-                              {formattedLeave.companion && (
-                                <p className="text-gray-500 text-sm">المرافق: {formattedLeave.companion}</p>
-                              )}
+                <Accordion type="single" collapsible className="w-full">
+                  {filteredReports?.map((leave) => {
+                    const formattedLeave = formatReportData(leave);
+                    return (
+                      <AccordionItem key={formattedLeave.id} value={formattedLeave.id} className="bg-white rounded-xl overflow-hidden shadow border-none mb-4">
+                        <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                          <div className="flex justify-between items-center w-full">
+                            <div className="flex items-center">
+                              <div>
+                                <h3 className="font-bold text-lg text-gray-800 text-right">{formattedLeave.title}</h3>
+                                <p className="text-gray-500 text-sm text-right">تاريخ الإصدار: {formattedLeave.issueDate}</p>
+                              </div>
+                            </div>
+                            <div>
+                              {ReportTypeIcons[formattedLeave.reportType] || <FileText className="h-6 w-6 text-gray-400" />}
                             </div>
                           </div>
-                          {ReportTypeIcons[formattedLeave.reportType] || <FileText className="h-6 w-6 text-gray-400" />}
-                        </div>
-                      </div>
-                      
-                      {selectedLeave === formattedLeave.id && (
-                        <div className="border-t">
-                          <div className="grid grid-cols-2 divide-x divide-x-reverse divide-gray-200">
-                            <div className="p-4 text-center">
-                              <p className="text-gray-500 mb-1">تاريخ بداية الإجازة</p>
+                        </AccordionTrigger>
+                        
+                        <div className="border-t border-gray-200">
+                          <div className="grid grid-cols-2 divide-x divide-x-reverse">
+                            <div className="p-3 text-center">
+                              <p className="text-gray-500 text-sm mb-1">تاريخ بداية الإجازة</p>
                               <p className="font-bold text-gray-800">{formattedLeave.startDate}</p>
                             </div>
-                            <div className="p-4 text-center">
-                              <p className="text-gray-500 mb-1">تاريخ نهاية الإجازة</p>
+                            <div className="p-3 text-center">
+                              <p className="text-gray-500 text-sm mb-1">تاريخ نهاية الإجازة</p>
                               <p className="font-bold text-gray-800">{formattedLeave.endDate}</p>
                             </div>
+                          </div>
+                        </div>
+                        
+                        <AccordionContent className="pb-0">
+                          <div className="border-t p-4">
+                            <p className="text-gray-500 mb-1">نوع الإجازة</p>
+                            <p className="font-bold text-gray-800">{formattedLeave.reportType}</p>
                           </div>
                           
                           <div className="border-t p-4">
@@ -282,38 +307,43 @@ const MedicalReports = () => {
                             <p className="font-bold text-gray-800">{formattedLeave.leaveNumber}</p>
                           </div>
                           
+                          <div className="border-t p-4">
+                            <p className="text-gray-500 mb-1">اسم الطبيب</p>
+                            <p className="font-bold text-gray-800">{formattedLeave.doctor}</p>
+                          </div>
+                          
                           <div className="border-t p-4 flex justify-center gap-3">
                             <Button 
-                              className="bg-white text-green-600 border border-green-600 hover:bg-green-50 flex items-center"
+                              className="bg-white text-blue-600 border border-blue-600 hover:bg-blue-50 flex-1 flex items-center justify-center"
                               onClick={() => handleDownload(formattedLeave.id)}
-                              disabled={isDownloading === formattedLeave.id || isPrinting === formattedLeave.id}
+                              disabled={isDownloading === formattedLeave.id || isPrinting === formattedLeave.id || isSharing === formattedLeave.id}
                             >
                               {isDownloading === formattedLeave.id ? (
                                 <Loader2 className="h-5 w-5 ml-2 animate-spin" />
                               ) : (
                                 <Download className="h-5 w-5 ml-2" />
                               )}
-                              تحميل التقرير
+                              تحميل
                             </Button>
                             
                             <Button 
-                              className="bg-green-600 text-white hover:bg-green-700 flex items-center"
-                              onClick={() => handlePrint(formattedLeave.id)}
-                              disabled={isDownloading === formattedLeave.id || isPrinting === formattedLeave.id}
+                              className="bg-blue-600 text-white hover:bg-blue-700 flex-1 flex items-center justify-center"
+                              onClick={() => handleShare(formattedLeave.id)}
+                              disabled={isDownloading === formattedLeave.id || isPrinting === formattedLeave.id || isSharing === formattedLeave.id}
                             >
-                              {isPrinting === formattedLeave.id ? (
+                              {isSharing === formattedLeave.id ? (
                                 <Loader2 className="h-5 w-5 ml-2 animate-spin" />
                               ) : (
-                                <Printer className="h-5 w-5 ml-2" />
+                                <Share2 className="h-5 w-5 ml-2" />
                               )}
-                              طباعة التقرير
+                              مشاركة
                             </Button>
                           </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                        </AccordionContent>
+                      </AccordionItem>
+                    );
+                  })}
+                </Accordion>
               </div>
             )}
           </div>

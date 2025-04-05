@@ -51,7 +51,9 @@ export const getMedicalReports = async (nationalId: string): Promise<MedicalRepo
             inputdatefrom: "2025-03-05",
             inputdateto: "2025-03-19",
             inputidentity: "1054568758",
-            inputcentralnamear: "شرككة اسلم مرشود الرحيلي الطببي للطبي العام"
+            inputcentralnamear: "شرككة اسلم مرشود الرحيلي الطببي للطبي العام",
+            inputdoctorar: "د. أحمد محمد",
+            input_sickleave_type: "إجازة مرضية"
           },
           {
             id: "2",
@@ -63,7 +65,9 @@ export const getMedicalReports = async (nationalId: string): Promise<MedicalRepo
             endDate: "٢٠٢٣-٠٨-٢٢",
             facility: "مجمع الملحم الطبي",
             leaveNumber: "٤٥٦٧٨٩",
-            inputidentity: "1054568758"
+            inputidentity: "1054568758",
+            inputdoctorar: "د. سعيد عبدالله",
+            input_sickleave_type: "إجازة مرضية"
           },
           {
             id: "3",
@@ -75,7 +79,9 @@ export const getMedicalReports = async (nationalId: string): Promise<MedicalRepo
             endDate: "٢٠٢٣-٠٩-١٥",
             facility: "مستشفى الملك فهد",
             leaveNumber: "٧٨٩١٢٣",
-            inputidentity: "1054568758"
+            inputidentity: "1054568758",
+            inputdoctorar: "د. خالد العلي",
+            input_sickleave_type: "مشهد مراجعة"
           },
           {
             id: "4",
@@ -88,7 +94,9 @@ export const getMedicalReports = async (nationalId: string): Promise<MedicalRepo
             facility: "مستشفى الأمير سلطان",
             leaveNumber: "٥٦٧٨٩٠",
             inputCompanionNameAr: "محمد عبدالله",
-            inputidentity: "1054568758"
+            inputidentity: "1054568758",
+            inputdoctorar: "د. نورة الحمد",
+            input_sickleave_type: "مشهد مرافقة"
           },
           {
             id: "5",
@@ -100,7 +108,9 @@ export const getMedicalReports = async (nationalId: string): Promise<MedicalRepo
             endDate: "٢٠٢٣-١١-٢٠",
             facility: "المركز الطبي الدولي",
             leaveNumber: "٣٤٥٦٧٨",
-            inputidentity: "1054568758"
+            inputidentity: "1054568758",
+            inputdoctorar: "د. فهد العنزي",
+            input_sickleave_type: "تقرير طبي"
           }
         ]
       };
@@ -116,16 +126,33 @@ export const getMedicalReports = async (nationalId: string): Promise<MedicalRepo
 };
 
 export const downloadMedicalReport = async (reportId: string): Promise<MedicalReportDownloadResponse> => {
-  // Simulate API call for downloading a report
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        success: true,
-        fileUrl: `https://example.com/api/reports/download/${reportId}`,
-        message: "تم تحميل التقرير بنجاح"
-      });
-    }, 1000);
-  });
+  try {
+    // Get the URL for the PDF file
+    const pdfUrl = `https://www.sohatey.info/model_sikleaves_n/sickleavecreate/${reportId}`;
+    
+    // Create a temporary link element
+    const link = document.createElement('a');
+    link.href = pdfUrl;
+    link.target = '_blank';
+    link.download = 'sickleaves.pdf';
+    
+    // Trigger download
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    return {
+      success: true,
+      fileUrl: pdfUrl,
+      message: "تم تحميل التقرير بنجاح"
+    };
+  } catch (error) {
+    console.error("Error downloading report:", error);
+    return {
+      success: false,
+      message: "حدث خطأ أثناء تحميل التقرير"
+    };
+  }
 };
 
 export const printMedicalReport = async (reportId: string): Promise<MedicalReportPrintResponse> => {
@@ -137,4 +164,32 @@ export const printMedicalReport = async (reportId: string): Promise<MedicalRepor
     printUrl,
     message: "تم تحضير التقرير للطباعة"
   };
+};
+
+export const shareMedicalReport = async (reportId: string): Promise<boolean> => {
+  try {
+    const fileUrl = `https://www.sohatey.info/model_sikleaves_n/sickleavecreate/${reportId}`;
+    
+    if (navigator.share) {
+      await navigator.share({
+        title: 'تقرير إجازة مرضية',
+        text: 'مشاركة تقرير الإجازة المرضية',
+        url: fileUrl,
+      });
+      return true;
+    } else {
+      // Fallback for browsers that don't support Web Share API
+      const textArea = document.createElement('textarea');
+      textArea.value = fileUrl;
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      return true;
+    }
+  } catch (error) {
+    console.error('Error sharing report:', error);
+    return false;
+  }
 };
